@@ -41,7 +41,7 @@ object Application extends App  {
     .spanBy(row => row.getString("uniquecarrier"))
     .map {case (carrier, rows) => (carrier, rows.map(_.getInt("arrdelay")).sum)}
     .collect()
-  println(arrdelayByCarrier)
+  arrdelayByCarrier.foreach{ case (carrier, delay) => println(carrier + " - " + delay) }
 
 
 //  TODO:
@@ -82,5 +82,19 @@ object Application extends App  {
     .spanBy(row => row.getString("uniquecarrier"))
     .map {case (carrier, rows) => (carrier, rows.map(_.getInt("arrdelay")).sum)}
     .collect()
-  println(arrdelayByCarrier2)
+  arrdelayByCarrier2.foreach{ case (carrier, delay) => println(carrier + " - " + delay) }
+
+  println("now use custom in-memory caching for the last query: ")
+  val arrdelayByCarrierCached = airlines
+    .select("year", "uniquecarrier", "arrdelay")
+    .filter(row => row.getInt("year") == 2007)
+    .spanBy(row => row.getString("uniquecarrier"))
+    .cache()
+  println("cached")
+
+  val arrdelayByCarrier3 = arrdelayByCarrierCached
+    .map {case (carrier, rows) => (carrier, rows.map(_.getInt("arrdelay")).sum)}
+    .collect()
+
+  arrdelayByCarrier3.foreach{ case (carrier, delay) => println(carrier + " - " + delay) }
 }
