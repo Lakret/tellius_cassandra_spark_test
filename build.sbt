@@ -50,7 +50,9 @@ assemblyMergeStrategy in assembly := {
     case "META-INF/mimetypes.default" => MergeStrategy.last
 
     case "META-INF/io.netty.versions.properties" => MergeStrategy.last
-    case "jansi.dll" => MergeStrategy.last
+    case "META-INF/native/osx/libjansi.jnilib" => MergeStrategy.last
+    case "META-INF/native/windows32/jansi.dll" => MergeStrategy.last
+    case "META-INF/native/windows64/jansi.dll" => MergeStrategy.last
     
     case "plugin.properties" => MergeStrategy.last
     case "log4j.properties" => MergeStrategy.last
