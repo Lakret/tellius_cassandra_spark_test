@@ -33,6 +33,7 @@ assemblyMergeStrategy in assembly := {
 
     case PathList("javax", "xml", xs @ _*) => MergeStrategy.last
     case PathList("io", "netty", xs @ _*) => MergeStrategy.last
+    case PathList("org", "fusesource", xs @ _*) => MergeStrategy.last
 
     case PathList("org", "apache", xs @ _*) => MergeStrategy.last
     case PathList("com", "google", xs @ _*) => MergeStrategy.last
