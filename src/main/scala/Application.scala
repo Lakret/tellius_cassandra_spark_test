@@ -40,7 +40,7 @@ object Application extends App  {
     .filter(row => row.getInt("year") == 2007)
     .spanBy(row => row.getString("uniquecarrier"))
     .map {case (carrier, rows) => (carrier, rows.map(_.getInt("arrdelay")).sum)}
-    .toString()
+    .collect()
   println(arrdelayByCarrier)
 
 
@@ -81,6 +81,6 @@ object Application extends App  {
     .filter(row => row.getInt("year") == 2007)
     .spanBy(row => row.getString("uniquecarrier"))
     .map {case (carrier, rows) => (carrier, rows.map(_.getInt("arrdelay")).sum)}
-    .toString()
+    .collect()
   println(arrdelayByCarrier2)
 }
