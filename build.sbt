@@ -6,6 +6,8 @@ version := "0.0.1"
 
 scalaVersion := "2.10.4"
 
+ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) }
+
 resolvers += "spray repo" at "http://repo.spray.io"
 
 resolvers += "spray nightlies" at "http://nightlies.spray.io"
