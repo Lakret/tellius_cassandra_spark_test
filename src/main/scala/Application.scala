@@ -14,5 +14,5 @@ object Application extends App  {
 
   println("running...")
 
-  println(airlines.count())
+  println(airlines.select("year", "month", "day", "uniquecarrier", "arrdelay").where("year = ? and month = ? and uniquecarrier = ?", "2007", "1", "WN").map(_.getInt("arrdelay")).sum)
 }
