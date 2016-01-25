@@ -25,16 +25,27 @@ object Application extends App  {
   println(airlines.select("year", "month", "day", "uniquecarrier", "arrdelay").where("year = ? and month = ? and uniquecarrier = ?", "2007", "1", "WN").map(_.getInt("arrdelay")).sum)
 
   println("selecting sum(arrdelay) for WN in 2007")
-  println(airlines.select("year", "uniquecarrier", "arrdelay").where("year = ? and uniquecarrier = ?", "2007", "WN").map(_.getInt("arrdelay")).sum)
+//  fails because not all keys of partition key are provided
+//  TODO: retest with different partition key
+//  println(airlines.select("year", "uniquecarrier", "arrdelay").where("year = ? and uniquecarrier = ?", "2007", "WN").map(_.getInt("arrdelay")).sum)
+  println(airlines
+    .select("year", "uniquecarrier", "arrdelay")
+    .filter(row => row.getInt("year") == 2007 && row.getString("uniquecarrier") == "WN")
+    .map(_.getInt("arrdelay")).sum)
 
   println("selecting avg(arrdelay) for each carrier in 2007")
+//  TODO: try where with different partitioning
   val arrdelayByCarrier = airlines
     .select("year", "uniquecarrier", "arrdelay")
-    .where("year = ?", "2007")
+    .filter(row => row.getInt("year") == 2007)
     .spanBy(row => row.getString("uniquecarrier"))
     .map {case (carrier, rows) => (carrier, rows.map(_.getInt("arrdelay")).sum)}
     .toString()
   println(arrdelayByCarrier)
+
+
+//  TODO:
+//  top100, joins, averages
 
 //  println("selecting top 100 delays for WN")
 //  val top100ByCarrier = airlines
@@ -59,12 +70,15 @@ object Application extends App  {
   println(airlines.select("year", "month", "day", "uniquecarrier", "arrdelay").where("year = ? and month = ? and uniquecarrier = ?", "2007", "1", "WN").map(_.getInt("arrdelay")).sum)
 
   println("cached: selecting sum(arrdelay) for WN in 2007")
-  println(airlines.select("year", "uniquecarrier", "arrdelay").where("year = ? and uniquecarrier = ?", "2007", "WN").map(_.getInt("arrdelay")).sum)
+  println(airlines
+    .select("year", "uniquecarrier", "arrdelay")
+    .filter(row => row.getInt("year") == 2007 && row.getString("uniquecarrier") == "WN")
+    .map(_.getInt("arrdelay")).sum)
 
   println("cached: selecting avg(arrdelay) for each carrier in 2007")
   val arrdelayByCarrier2 = airlines
     .select("year", "uniquecarrier", "arrdelay")
-    .where("year = ?", "2007")
+    .filter(row => row.getInt("year") == 2007)
     .spanBy(row => row.getString("uniquecarrier"))
     .map {case (carrier, rows) => (carrier, rows.map(_.getInt("arrdelay")).sum)}
     .toString()
