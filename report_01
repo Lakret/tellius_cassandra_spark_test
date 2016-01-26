@@ -1,0 +1,123 @@
+FIRST RUN:
+
+cassandra count:
+Job 0 finished: reduce at CassandraTableScanRDD.scala:270, took 33.825326 s
+3920284
+
+spark count:
+16/01/25 23:35:26 INFO DAGScheduler: Job 1 finished: count at Application.scala:22, took 53.662253 s
+3920284
+
+selecting sum(arrdelay) for WN in January of 2007
+16/01/25 23:35:28 INFO DAGScheduler: Job 2 finished: sum at Application.scala:25, took 1.586040 s
+58418.0
+
+selecting sum(arrdelay) for WN in 2007
+16/01/25 23:35:57 INFO DAGScheduler: Job 3 finished: sum at Application.scala:34, took 28.575805 s
+2132061.0
+
+selecting avg(arrdelay) for each carrier in 2007
+16/01/25 23:36:25 INFO DAGScheduler: Job 4 finished: collect at Application.scala:43, took 28.118991 s
+[Lscala.Tuple2;@d257579
+
+cached: cassandra count:
+16/01/25 23:36:47 INFO DAGScheduler: Job 5 finished: reduce at CassandraTableScanRDD.scala:270, took 21.209838 s
+3920284
+
+cached: spark count:
+16/01/25 23:37:38 INFO DAGScheduler: Job 6 finished: count at Application.scala:67, took 50.851509 s
+3920284
+
+cached: selecting sum(arrdelay) for WN in January of 2007
+16/01/25 23:37:39 INFO DAGScheduler: Job 7 finished: sum at Application.scala:70, took 1.235575 s
+58418.0
+
+cached: selecting sum(arrdelay) for WN in 2007
+16/01/25 23:38:07 INFO DAGScheduler: Job 8 finished: sum at Application.scala:76, took 27.270237 s
+2132061.0
+
+cached: selecting avg(arrdelay) for each carrier in 2007
+16/01/25 23:38:34 INFO DAGScheduler: Job 9 finished: collect at Application.scala:84, took 26.947759 s
+[Lscala.Tuple2;@32bb0072
+
+
+SECOND RUN:
+
+cassandra count:
+16/01/25 23:53:15 INFO DAGScheduler: Job 0 finished: reduce at CassandraTableScanRDD.scala:270, took 39.444645 s
+3920284
+
+spark count:
+16/01/25 23:53:59 INFO DAGScheduler: Job 1 finished: count at Application.scala:22, took 43.126039 s
+3920284
+
+selecting sum(arrdelay) for WN in January of 2007
+16/01/25 23:54:00 INFO DAGScheduler: Job 2 finished: sum at Application.scala:25, took 1.386876 s
+58418.0
+
+selecting sum(arrdelay) for WN in 2007
+16/01/25 23:54:36 INFO DAGScheduler: Job 3 finished: sum at Application.scala:34, took 35.121684 s
+2132061.0
+
+selecting avg(arrdelay) for each carrier in 2007
+16/01/25 23:55:04 INFO DAGScheduler: Job 4 finished: collect at Application.scala:43, took 27.886859 s
+9E - 172400
+AA - 1037022
+AQ - 5135
+AS - 139910
+B6 - 331574
+CO - 502869
+DL - 592860
+EV - 477294
+...
+XE - 303144
+YV - 260959
+
+starting caching...
+cached.
+
+cached: cassandra count:
+16/01/25 23:55:25 INFO DAGScheduler: Job 5 finished: reduce at CassandraTableScanRDD.scala:270, took 20.908430 s
+3920284
+
+cached: spark count:
+16/01/25 23:56:17 INFO DAGScheduler: Job 6 finished: count at Application.scala:67, took 51.688647 s
+3920284
+
+cached: selecting sum(arrdelay) for WN in January of 2007
+16/01/25 23:56:18 INFO DAGScheduler: Job 7 finished: sum at Application.scala:70, took 1.243906 s
+58418.0
+
+cached: selecting sum(arrdelay) for WN in 2007
+16/01/25 23:56:52 INFO DAGScheduler: Job 8 finished: sum at Application.scala:76, took 34.198826 s
+2132061.0
+
+cached: selecting avg(arrdelay) for each carrier in 2007
+16/01/25 23:57:20 INFO DAGScheduler: Job 9 finished: collect at Application.scala:84, took 27.209293 s
+9E - 172400
+AA - 1037022
+AQ - 5135
+AS - 139910
+B6 - 331574
+CO - 502869
+DL - 592860
+EV - 477294
+...
+XE - 303144
+YV - 260959
+
+now use custom in-memory caching for the last query: 
+cached
+
+16/01/25 23:57:53 INFO DAGScheduler: Job 10 finished: collect at Application.scala:97, took 33.417059 s
+9E - 172400
+AA - 1037022
+AQ - 5135
+AS - 139910
+B6 - 331574
+CO - 502869
+DL - 592860
+EV - 477294
+...
+XE - 303144
+YV - 260959

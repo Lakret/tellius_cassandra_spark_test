@@ -90,6 +90,8 @@ object Application extends App  {
     .filter(row => row.getInt("year") == 2007)
     .spanBy(row => row.getString("uniquecarrier"))
     .cache()
+
+  println(arrdelayByCarrierCached.count())
   println("cached")
 
   val arrdelayByCarrier3 = arrdelayByCarrierCached
