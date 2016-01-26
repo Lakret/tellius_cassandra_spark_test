@@ -121,3 +121,77 @@ EV - 477294
 ...
 XE - 303144
 YV - 260959
+
+
+THIRD RUN (last caching fixed)
+
+running...
+cassandra count:
+16/01/26 00:11:41 INFO DAGScheduler: Job 0 finished: reduce at CassandraTableScanRDD.scala:270, took 35.009162 s
+3920284
+spark count:
+16/01/26 00:12:24 INFO DAGScheduler: Job 1 finished: count at Application.scala:22, took 42.975979 s
+3920284
+selecting sum(arrdelay) for WN in January of 2007
+16/01/26 00:12:26 INFO DAGScheduler: Job 2 finished: sum at Application.scala:25, took 1.372391 s
+58418.0
+selecting sum(arrdelay) for WN in 2007
+16/01/26 00:12:55 INFO DAGScheduler: Job 3 finished: sum at Application.scala:34, took 28.967014 s
+2132061.0
+selecting avg(arrdelay) for each carrier in 2007
+16/01/26 00:13:28 INFO DAGScheduler: Job 4 finished: collect at Application.scala:43, took 32.650692 s
+9E - 172400
+AA - 1037022
+AQ - 5135
+AS - 139910
+B6 - 331574
+CO - 502869
+DL - 592860
+EV - 477294
+...
+XE - 303144
+YV - 260959
+starting caching...
+cached.
+cached: cassandra count:
+16/01/26 00:13:50 INFO DAGScheduler: Job 5 finished: reduce at CassandraTableScanRDD.scala:270, took 22.011620 s
+3920284
+cached: spark count:
+16/01/26 00:14:44 INFO DAGScheduler: Job 6 finished: count at Application.scala:67, took 53.578922 s
+3920284
+cached: selecting sum(arrdelay) for WN in January of 2007
+16/01/26 00:14:45 INFO DAGScheduler: Job 7 finished: sum at Application.scala:70, took 1.348326 s
+58418.0
+cached: selecting sum(arrdelay) for WN in 2007
+16/01/26 00:15:13 INFO DAGScheduler: Job 8 finished: sum at Application.scala:76, took 27.904378 s
+2132061.0
+cached: selecting avg(arrdelay) for each carrier in 2007
+16/01/26 00:15:40 INFO DAGScheduler: Job 9 finished: collect at Application.scala:84, took 26.699246 s
+9E - 172400
+AA - 1037022
+AQ - 5135
+AS - 139910
+B6 - 331574
+CO - 502869
+DL - 592860
+EV - 477294
+...
+XE - 303144
+YV - 260959
+now use custom in-memory caching for the last query: 
+16/01/26 00:16:19 INFO DAGScheduler: Job 10 finished: count at Application.scala:94, took 38.439671 s
+166
+cached
+16/01/26 00:16:47 INFO DAGScheduler: Job 11 finished: collect at Application.scala:99, took 27.883877 s
+9E - 172400
+AA - 1037022
+AQ - 5135
+AS - 139910
+B6 - 331574
+CO - 502869
+DL - 592860
+EV - 477294
+...
+XE - 303144
+YV - 260959
+
