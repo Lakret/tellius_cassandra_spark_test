@@ -7,7 +7,6 @@ import org.apache.spark._
 import com.datastax.spark.connector._
 
 import com.datastax.driver.core._
-import com.github.tototoshi.csv._
 
 import scala.collection.immutable._
 import scala.concurrent.{ExecutionContext, Future}
