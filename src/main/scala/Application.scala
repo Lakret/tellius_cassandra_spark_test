@@ -1,14 +1,62 @@
 package main
 
+import java.io.{FileReader, BufferedReader, File}
+import java.util.concurrent.TimeUnit
+
 import org.apache.spark._
 import com.datastax.spark.connector._
-import org.apache.spark.rdd.RDD
+
+import com.datastax.driver.core._
+import com.github.tototoshi.csv._
+
+import scala.collection.immutable._
+import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.forkjoin._
+
+
+import scala.io.Source
 
 // ~/home/spark/spark-1.5.2-bin-hadoop2.6/bin/spark-submit --class main.Middleware --master spark://ip-172-31-57-38:7077 tellius_cassandra_spark_test-assembly-0.0.1.jar
 
+//object CassandraTestLocal {
+//  def insertData(table: String) = {
+//    import ExecutionContext.Implicits.global
+//
+//    val cluster = Cluster.builder().addContactPoint("127.0.0.1").build()
+//    val session = cluster.connect("testairlines")
+//
+//    println("connected")
+//
+//    val lines = Source.fromFile("L:\\freelance\\tellius_cassandra_spark_test\\data\\2007.csv").getLines().drop(3559000)
+//
+//    println("lines read")
+//    println(java.time.LocalDateTime.now())
+//
+//    var x = 0
+//    lines.foreach { row =>
+//      val prepared = row.split(",").map(x => "'" + x + "'").mkString(",")
+//      x = x + 1
+//      if (x % 1000 == 0) {
+//        println(x, prepared.mkString(","))
+//      }
+//      Future {
+////        println("executing")
+//        val stmnt = "INSERT INTO airlines (year,month,day ,dayofweek , deptime , crsdeptime , arrtime , crsarrtime , uniquecarrier , flightnum , tailnum , actualelapsedtime , crselapsedtime , airtime , arrdelay, depdelay, origin , dest , distance , taxiin , taxiout , cancelled , cancellationcode , diverted , carrierdelay , weatherdelay , nasdelay , securitydelay , lateaircraftdelay ) VALUES (" + prepared + ");"
+////        println(stmnt)
+//        val res =  session.executeAsync(stmnt)
+//      if (x % 1000 == 0) {
+//        println(res.get(1, TimeUnit.SECONDS))
+//      }
+//      }
+//    }
+//
+//    println(java.time.LocalDateTime.now())
+//  }
+//}
+
 object Application extends App  {
 // bin/spark-shell --packages datastax:spark-cassandra-connector:1.5.0-RC1-s_2.10 --master spark://ip-172-31-57-38:7077 --driver-java-options spark.driver.allowMultipleContexts=true
-
+ def sparkTest() = {
   val conf = new SparkConf(true).set("spark.cassandra.connection.host", "172.31.57.38").set("spark.driver.allowMultipleContexts", "true")
   val sc = new SparkContext("spark://ip-172-31-57-38:7077", "text", conf)
   val airlines = sc.cassandraTable("testairlines", "airlines5")
@@ -25,16 +73,16 @@ object Application extends App  {
   println(airlines.select("year", "month", "day", "uniquecarrier", "arrdelay").where("year = ? and month = ? and uniquecarrier = ?", "2007", "1", "WN").map(_.getInt("arrdelay")).sum)
 
   println("selecting sum(arrdelay) for WN in 2007")
-//  fails because not all keys of partition key are provided
-//  TODO: retest with different partition key
-//  println(airlines.select("year", "uniquecarrier", "arrdelay").where("year = ? and uniquecarrier = ?", "2007", "WN").map(_.getInt("arrdelay")).sum)
+  //  fails because not all keys of partition key are provided
+  //  TODO: retest with different partition key
+  //  println(airlines.select("year", "uniquecarrier", "arrdelay").where("year = ? and uniquecarrier = ?", "2007", "WN").map(_.getInt("arrdelay")).sum)
   println(airlines
     .select("year", "uniquecarrier", "arrdelay")
     .filter(row => row.getInt("year") == 2007 && row.getString("uniquecarrier") == "WN")
     .map(_.getInt("arrdelay")).sum)
 
   println("selecting avg(arrdelay) for each carrier in 2007")
-//  TODO: try where with different partitioning
+  //  TODO: try where with different partitioning
   val arrdelayByCarrier = airlines
     .select("year", "uniquecarrier", "arrdelay")
     .filter(row => row.getInt("year") == 2007)
@@ -51,17 +99,14 @@ object Application extends App  {
     .sortByKey(false)
     .take(100))
 
-//  TODO:
-//  top100, joins, averages
-
-//  println("selecting top 100 delays for WN")
-//  val top100ByCarrier = airlines
-//    .select("year", "uniquecarrier", "arrdelay")
-//    .where("year = ?", "2007")
-//    .spanBy(row => row.getString("uniquecarrier"))
-//    .map {case (carrier, rows) => (carrier, rows.map(_.getInt("arrdelay")).sum)}
-//    .toString()
-//  println(top100ByCarrier)
+  //  println("selecting top 100 delays for WN")
+  //  val top100ByCarrier = airlines
+  //    .select("year", "uniquecarrier", "arrdelay")
+  //    .where("year = ?", "2007")
+  //    .spanBy(row => row.getString("uniquecarrier"))
+  //    .map {case (carrier, rows) => (carrier, rows.map(_.getInt("arrdelay")).sum)}
+  //    .toString()
+  //  println(top100ByCarrier)
 
   println("starting caching...")
   airlines.cache()
@@ -107,11 +152,17 @@ object Application extends App  {
 
   arrdelayByCarrier3.foreach{ case (carrier, delay) => println(carrier + " - " + delay) }
 
-  println("taking top 100 arrdelays for WN in 2007")
+  println("cached: taking top 100 arrdelays for WN in 2007")
   println(airlines
     .select("year", "uniquecarrier", "arrdelay")
     .filter(row => row.getInt("year") == 2007 && row.getString("uniquecarrier") == "WN")
     .map(row => (row.getFloat("arrdelay"), (row.getInt("year"), row.getString("uniquecarrier"))))
     .sortByKey(false)
     .take(100))
+  }
+
+
+  println("hi!")
+//  CassandraTestLocal.insertData("airlines")
+  sparkTest()
 }
