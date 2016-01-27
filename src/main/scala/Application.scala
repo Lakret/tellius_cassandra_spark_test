@@ -43,6 +43,13 @@ object Application extends App  {
     .collect()
   arrdelayByCarrier.foreach{ case (carrier, delay) => println(carrier + " - " + delay) }
 
+  println("taking top 100 arrdelays for WN in 2007")
+  println(airlines
+    .select("year", "uniquecarrier", "arrdelay")
+    .filter(row => row.getInt("year") == 2007 && row.getString("uniquecarrier") == "WN")
+    .map(row => (row.getFloat("arrdelay"), (row.getInt("year"), row.getString("uniquecarrier"))))
+    .sortByKey(false)
+    .take(100))
 
 //  TODO:
 //  top100, joins, averages
@@ -99,4 +106,12 @@ object Application extends App  {
     .collect()
 
   arrdelayByCarrier3.foreach{ case (carrier, delay) => println(carrier + " - " + delay) }
+
+  println("taking top 100 arrdelays for WN in 2007")
+  println(airlines
+    .select("year", "uniquecarrier", "arrdelay")
+    .filter(row => row.getInt("year") == 2007 && row.getString("uniquecarrier") == "WN")
+    .map(row => (row.getFloat("arrdelay"), (row.getInt("year"), row.getString("uniquecarrier"))))
+    .sortByKey(false)
+    .take(100))
 }
