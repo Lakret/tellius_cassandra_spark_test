@@ -22,7 +22,7 @@ object CassandraTestLocal {
  implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(32))
 
   def insertData(table: String) = {
-    val cluster = Cluster.builder().addContactPoint("127.0.0.1").build()
+    val cluster = Cluster.builder().addContactPoint("172.31.58.106").build()
     val session = cluster.connect("testairlines")
 
     println("connected")
