@@ -20,7 +20,7 @@ import scala.io.Source
 // ~/home/spark/spark-1.5.2-bin-hadoop2.6/bin/spark-submit --class main.Middleware --master spark://ip-172-31-57-38:7077 tellius_cassandra_spark_test-assembly-0.0.1.jar
 
 object CassandraTestLocal {
- implicit val ec = ExecutionContext.fromExecutor(Executors.newWorkStealingPool(8))
+ implicit val ec = ExecutionContext.fromExecutor(Executors.newWorkStealingPool(16))
 
   def insertData(table: String) = {
     val cluster = Cluster.builder().addContactPoint("172.31.58.106").build()
