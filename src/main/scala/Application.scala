@@ -80,6 +80,20 @@ object CassandraTestLocal {
     Await.ready(Future.sequence(futures), Duration.Inf)
     println(java.time.LocalDateTime.now())
 
+   println("sum for each carrier")
+   println(java.time.LocalDateTime.now())
+   val carriers = List("WN", "UA", "OO", "NW", "MQ", "HA", "AA", "US", "AQ", "XE", "OH", "DL", "B6", "9E", "AS", "CO", "F9", "YV", "EV", "FL")
+   lazy val futures3 = (1 to 12).flatMap { month =>
+    carriers.map { carrier =>
+     Future {
+      val stmnt = "SELECT sum(arrdelay) from airlines where year = '2007' and month = '" + month.toString + "' and uniquecarrier = '" + carrier + "'"
+      var res = session.execute(stmnt)
+     }
+    }
+   }
+   Await.ready(Future.sequence(futures3), Duration.Inf)
+   println(java.time.LocalDateTime.now())
+
    println("top 100 for 2007 and WN")
    println(java.time.LocalDateTime.now())
    lazy val futures2 = (1 to 12).map { month =>
