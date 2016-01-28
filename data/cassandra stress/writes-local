@@ -1,0 +1,22 @@
+108 threads:
+
+Results:
+op rate                   : 25922 [WRITE:25922]
+partition rate            : 25922 [WRITE:25922]
+row rate                  : 25922 [WRITE:25922]
+latency mean              : 3.0 [WRITE:3.0]
+latency median            : 1.4 [WRITE:1.4]
+latency 95th percentile   : 5.2 [WRITE:5.2]
+latency 99th percentile   : 29.0 [WRITE:29.0]
+latency 99.9th percentile : 166.8 [WRITE:166.8]
+latency max               : 611.2 [WRITE:611.2]
+Total partitions          : 977842 [WRITE:977842]
+Total errors              : 0 [WRITE:0]
+total gc count            : 55
+total gc mb               : 13766
+total gc time (s)         : 2
+avg gc time(ms)           : 31
+stdev gc time(ms)         : 9
+Total operation time      : 00:00:37
+
+Improvement over 54 threadCount: 13%
