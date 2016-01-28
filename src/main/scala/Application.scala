@@ -27,7 +27,7 @@ object CassandraTestLocal {
 
     println("connected")
 
-    val lines = Source.fromFile("L:\\freelance\\tellius_cassandra_spark_test\\data\\2007.csv").getLines().toStream.par
+    val lines = Source.fromFile("./data/2007.csv").getLines().toStream.par
 
     println("lines read")
     println(java.time.LocalDateTime.now())
