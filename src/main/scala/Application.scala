@@ -39,7 +39,7 @@ object CassandraTestLocal {
       for (i <- 0 to 13) {
        arr(i) = "'" +  arr(i) + "'"
       }
-      for (i <- 14 to (arr.length - 1)) {
+      for (i <- 15 to (arr.length - 1)) {
        arr(i) = "'" +  arr(i) + "'"
       }
 
