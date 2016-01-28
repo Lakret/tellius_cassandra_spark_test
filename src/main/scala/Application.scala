@@ -27,19 +27,20 @@ object CassandraTestLocal {
 
     println("connected")
 
-    val lines = Source.fromFile("./data/2007.csv").getLines().toStream.par
+    val lines = Source.fromFile("./data/2007.csv").getLines()
 
     println("lines read")
     println(java.time.LocalDateTime.now())
 
     var x = 0
     lines.foreach { row =>
+     Future {
       val prepared = row.split(",").map(x => "'" + x + "'").mkString(",")
       x = x + 1
       if (x % 1000 == 0) {
         println(x, prepared.mkString(","))
       }
-      Future {
+
 //        println("executing")
         val stmnt = "INSERT INTO airlines (year,month,day ,dayofweek , deptime , crsdeptime , arrtime , crsarrtime , uniquecarrier , flightnum , tailnum , actualelapsedtime , crselapsedtime , airtime , arrdelay, depdelay, origin , dest , distance , taxiin , taxiout , cancelled , cancellationcode , diverted , carrierdelay , weatherdelay , nasdelay , securitydelay , lateaircraftdelay ) VALUES (" + prepared + ");"
 //        println(stmnt)
