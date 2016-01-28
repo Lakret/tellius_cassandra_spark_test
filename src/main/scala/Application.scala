@@ -81,7 +81,6 @@ object CassandraTestLocal {
     println(java.time.LocalDateTime.now())
 
    println("sum for each carrier")
-   println(java.time.LocalDateTime.now())
    val carriers = List("WN", "UA", "OO", "NW", "MQ", "HA", "AA", "US", "AQ", "XE", "OH", "DL", "B6", "9E", "AS", "CO", "F9", "YV", "EV", "FL")
    lazy val futures3 = (1 to 12).flatMap { month =>
     carriers.map { carrier =>
@@ -91,6 +90,7 @@ object CassandraTestLocal {
      }
     }
    }
+   println(java.time.LocalDateTime.now())
    Await.ready(Future.sequence(futures3), Duration.Inf)
    println(java.time.LocalDateTime.now())
 
