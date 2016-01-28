@@ -66,9 +66,9 @@ object CassandraTestLocal {
 object Application extends App  {
 // bin/spark-shell --packages datastax:spark-cassandra-connector:1.5.0-RC1-s_2.10 --master spark://ip-172-31-57-38:7077 --driver-java-options spark.driver.allowMultipleContexts=true
  def sparkTest() = {
-  val conf = new SparkConf(true).set("spark.cassandra.connection.host", "172.31.57.38").set("spark.driver.allowMultipleContexts", "true")
-  val sc = new SparkContext("spark://ip-172-31-57-38:7077", "text", conf)
-  val airlines = sc.cassandraTable("testairlines", "airlines5")
+  val conf = new SparkConf(true).set("spark.cassandra.connection.host", "172.31.58.106").set("spark.driver.allowMultipleContexts", "true")
+  val sc = new SparkContext("spark://ip-172-31-58-106:7077", "text", conf)
+  val airlines = sc.cassandraTable("testairlines", "airlines")
 
   println("running...")
 
@@ -117,61 +117,61 @@ object Application extends App  {
   //    .toString()
   //  println(top100ByCarrier)
 
-  println("starting caching...")
-  airlines.cache()
-  println("cached.")
-
-  println("cached: cassandra count:")
-  println(airlines.cassandraCount())
-
-  println("cached: spark count:")
-  println(airlines.count())
-
-  println("cached: selecting sum(arrdelay) for WN in January of 2007")
-  println(airlines.select("year", "month", "day", "uniquecarrier", "arrdelay").where("year = ? and month = ? and uniquecarrier = ?", "2007", "1", "WN").map(_.getInt("arrdelay")).sum)
-
-  println("cached: selecting sum(arrdelay) for WN in 2007")
-  println(airlines
-    .select("year", "uniquecarrier", "arrdelay")
-    .filter(row => row.getInt("year") == 2007 && row.getString("uniquecarrier") == "WN")
-    .map(_.getInt("arrdelay")).sum)
-
-  println("cached: selecting avg(arrdelay) for each carrier in 2007")
-  val arrdelayByCarrier2 = airlines
-    .select("year", "uniquecarrier", "arrdelay")
-    .filter(row => row.getInt("year") == 2007)
-    .spanBy(row => row.getString("uniquecarrier"))
-    .map {case (carrier, rows) => (carrier, rows.map(_.getInt("arrdelay")).sum)}
-    .collect()
-  arrdelayByCarrier2.foreach{ case (carrier, delay) => println(carrier + " - " + delay) }
-
-  println("now use custom in-memory caching for the last query: ")
-  val arrdelayByCarrierCached = airlines
-    .select("year", "uniquecarrier", "arrdelay")
-    .filter(row => row.getInt("year") == 2007)
-    .spanBy(row => row.getString("uniquecarrier"))
-    .cache()
-
-  println(arrdelayByCarrierCached.count())
-  println("cached")
-
-  val arrdelayByCarrier3 = arrdelayByCarrierCached
-    .map {case (carrier, rows) => (carrier, rows.map(_.getInt("arrdelay")).sum)}
-    .collect()
-
-  arrdelayByCarrier3.foreach{ case (carrier, delay) => println(carrier + " - " + delay) }
-
-  println("cached: taking top 100 arrdelays for WN in 2007")
-  println(airlines
-    .select("year", "uniquecarrier", "arrdelay")
-    .filter(row => row.getInt("year") == 2007 && row.getString("uniquecarrier") == "WN")
-    .map(row => (row.getFloat("arrdelay"), (row.getInt("year"), row.getString("uniquecarrier"))))
-    .sortByKey(false)
-    .take(100))
+//  println("starting caching...")
+//  airlines.cache()
+//  println("cached.")
+//
+//  println("cached: cassandra count:")
+//  println(airlines.cassandraCount())
+//
+//  println("cached: spark count:")
+//  println(airlines.count())
+//
+//  println("cached: selecting sum(arrdelay) for WN in January of 2007")
+//  println(airlines.select("year", "month", "day", "uniquecarrier", "arrdelay").where("year = ? and month = ? and uniquecarrier = ?", "2007", "1", "WN").map(_.getInt("arrdelay")).sum)
+//
+//  println("cached: selecting sum(arrdelay) for WN in 2007")
+//  println(airlines
+//    .select("year", "uniquecarrier", "arrdelay")
+//    .filter(row => row.getInt("year") == 2007 && row.getString("uniquecarrier") == "WN")
+//    .map(_.getInt("arrdelay")).sum)
+//
+//  println("cached: selecting avg(arrdelay) for each carrier in 2007")
+//  val arrdelayByCarrier2 = airlines
+//    .select("year", "uniquecarrier", "arrdelay")
+//    .filter(row => row.getInt("year") == 2007)
+//    .spanBy(row => row.getString("uniquecarrier"))
+//    .map {case (carrier, rows) => (carrier, rows.map(_.getInt("arrdelay")).sum)}
+//    .collect()
+//  arrdelayByCarrier2.foreach{ case (carrier, delay) => println(carrier + " - " + delay) }
+//
+//  println("now use custom in-memory caching for the last query: ")
+//  val arrdelayByCarrierCached = airlines
+//    .select("year", "uniquecarrier", "arrdelay")
+//    .filter(row => row.getInt("year") == 2007)
+//    .spanBy(row => row.getString("uniquecarrier"))
+//    .cache()
+//
+//  println(arrdelayByCarrierCached.count())
+//  println("cached")
+//
+//  val arrdelayByCarrier3 = arrdelayByCarrierCached
+//    .map {case (carrier, rows) => (carrier, rows.map(_.getInt("arrdelay")).sum)}
+//    .collect()
+//
+//  arrdelayByCarrier3.foreach{ case (carrier, delay) => println(carrier + " - " + delay) }
+//
+//  println("cached: taking top 100 arrdelays for WN in 2007")
+//  println(airlines
+//    .select("year", "uniquecarrier", "arrdelay")
+//    .filter(row => row.getInt("year") == 2007 && row.getString("uniquecarrier") == "WN")
+//    .map(row => (row.getFloat("arrdelay"), (row.getInt("year"), row.getString("uniquecarrier"))))
+//    .sortByKey(false)
+//    .take(100))
   }
 
 
   println("hi!")
-  CassandraTestLocal.insertData("airlines")
-//  sparkTest()
+//  CassandraTestLocal.insertData("airlines")
+  sparkTest()
 }
