@@ -35,17 +35,18 @@ object CassandraTestLocal {
     var x = 0
     lines.foreach { row =>
      Future {
-      var prepared: Array[String] = row.split(",").array
+      var arr: Array[String] = row.split(",").array
       for (i <- 0 to 13) {
-       prepared(i) = "'" +  prepared(i) + "'"
+       arr(i) = "'" +  arr(i) + "'"
       }
-      for (i <- 14 to (prepared.length - 1)) {
-       prepared(i) = "'" +  prepared(i) + "'"
+      for (i <- 14 to (arr.length - 1)) {
+       arr(i) = "'" +  arr(i) + "'"
       }
 
+      val prepared = arr.mkString(",")
       x = x + 1
       if (x % 10000 == 0) {
-        println(x, prepared.mkString(","))
+        println(x, prepared)
       }
 
 //        println("executing")
