@@ -217,6 +217,6 @@ object Application extends App  {
 
   println("hi!")
 //  CassandraTestLocal.insertData("airlines")
-//  sparkTest()
-  CassandraTestLocal.queryData("airlines")
+  sparkTest()
+//  CassandraTestLocal.queryData("airlines")
 }
