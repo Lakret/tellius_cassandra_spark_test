@@ -19,7 +19,7 @@ import scala.io.Source
 // ~/home/spark/spark-1.5.2-bin-hadoop2.6/bin/spark-submit --class main.Middleware --master spark://ip-172-31-57-38:7077 tellius_cassandra_spark_test-assembly-0.0.1.jar
 
 object CassandraTestLocal {
- implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(32))
+ implicit val ec = ExecutionContext.fromExecutor(Executors.newWorkStealingPool(4))
 
   def insertData(table: String) = {
     val cluster = Cluster.builder().addContactPoint("172.31.58.106").build()
@@ -35,9 +35,16 @@ object CassandraTestLocal {
     var x = 0
     lines.foreach { row =>
      Future {
-      val prepared = row.split(",").map(x => "'" + x + "'").mkString(",")
+      var prepared: Array[String] = row.split(",").array
+      for (i <- 0 to 13) {
+       prepared(i) = "'" +  prepared(i) + "'"
+      }
+      for (i <- 14 to (prepared.length - 1)) {
+       prepared(i) = "'" +  prepared(i) + "'"
+      }
+
       x = x + 1
-      if (x % 1000 == 0) {
+      if (x % 10000 == 0) {
         println(x, prepared.mkString(","))
       }
 
