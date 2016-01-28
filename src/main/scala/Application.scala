@@ -2,6 +2,7 @@ package main
 
 import java.io.{FileReader, BufferedReader, File}
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.Executors
 
 import org.apache.spark._
 import com.datastax.spark.connector._
@@ -17,41 +18,41 @@ import scala.io.Source
 
 // ~/home/spark/spark-1.5.2-bin-hadoop2.6/bin/spark-submit --class main.Middleware --master spark://ip-172-31-57-38:7077 tellius_cassandra_spark_test-assembly-0.0.1.jar
 
-//object CassandraTestLocal {
-//  def insertData(table: String) = {
-//    import ExecutionContext.Implicits.global
-//
-//    val cluster = Cluster.builder().addContactPoint("127.0.0.1").build()
-//    val session = cluster.connect("testairlines")
-//
-//    println("connected")
-//
-//    val lines = Source.fromFile("L:\\freelance\\tellius_cassandra_spark_test\\data\\2007.csv").getLines().drop(3559000)
-//
-//    println("lines read")
-//    println(java.time.LocalDateTime.now())
-//
-//    var x = 0
-//    lines.foreach { row =>
-//      val prepared = row.split(",").map(x => "'" + x + "'").mkString(",")
-//      x = x + 1
-//      if (x % 1000 == 0) {
-//        println(x, prepared.mkString(","))
-//      }
-//      Future {
-////        println("executing")
-//        val stmnt = "INSERT INTO airlines (year,month,day ,dayofweek , deptime , crsdeptime , arrtime , crsarrtime , uniquecarrier , flightnum , tailnum , actualelapsedtime , crselapsedtime , airtime , arrdelay, depdelay, origin , dest , distance , taxiin , taxiout , cancelled , cancellationcode , diverted , carrierdelay , weatherdelay , nasdelay , securitydelay , lateaircraftdelay ) VALUES (" + prepared + ");"
-////        println(stmnt)
-//        val res =  session.executeAsync(stmnt)
-//      if (x % 1000 == 0) {
-//        println(res.get(1, TimeUnit.SECONDS))
-//      }
-//      }
-//    }
-//
-//    println(java.time.LocalDateTime.now())
-//  }
-//}
+object CassandraTestLocal {
+ implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(32))
+
+  def insertData(table: String) = {
+    val cluster = Cluster.builder().addContactPoint("127.0.0.1").build()
+    val session = cluster.connect("testairlines")
+
+    println("connected")
+
+    val lines = Source.fromFile("L:\\freelance\\tellius_cassandra_spark_test\\data\\2007.csv").getLines().toStream.par
+
+    println("lines read")
+    println(java.time.LocalDateTime.now())
+
+    var x = 0
+    lines.foreach { row =>
+      val prepared = row.split(",").map(x => "'" + x + "'").mkString(",")
+      x = x + 1
+      if (x % 1000 == 0) {
+        println(x, prepared.mkString(","))
+      }
+      Future {
+//        println("executing")
+        val stmnt = "INSERT INTO airlines (year,month,day ,dayofweek , deptime , crsdeptime , arrtime , crsarrtime , uniquecarrier , flightnum , tailnum , actualelapsedtime , crselapsedtime , airtime , arrdelay, depdelay, origin , dest , distance , taxiin , taxiout , cancelled , cancellationcode , diverted , carrierdelay , weatherdelay , nasdelay , securitydelay , lateaircraftdelay ) VALUES (" + prepared + ");"
+//        println(stmnt)
+        val res =  session.executeAsync(stmnt)
+      if (x % 1000 == 0) {
+        println(res.get(1, TimeUnit.SECONDS))
+      }
+      }
+    }
+
+    println(java.time.LocalDateTime.now())
+  }
+}
 
 object Application extends App  {
 // bin/spark-shell --packages datastax:spark-cassandra-connector:1.5.0-RC1-s_2.10 --master spark://ip-172-31-57-38:7077 --driver-java-options spark.driver.allowMultipleContexts=true
@@ -162,6 +163,6 @@ object Application extends App  {
 
 
   println("hi!")
-//  CassandraTestLocal.insertData("airlines")
-  sparkTest()
+  CassandraTestLocal.insertData("airlines")
+//  sparkTest()
 }
