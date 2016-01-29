@@ -20,7 +20,7 @@ import scala.io.Source
 // ~/home/spark/spark-1.5.2-bin-hadoop2.6/bin/spark-submit --class main.Middleware --master spark://ip-172-31-57-38:7077 tellius_cassandra_spark_test-assembly-0.0.1.jar
 
 object CassandraTestLocal {
- implicit val ec = ExecutionContext.fromExecutor(Executors.newWorkStealingPool(16))
+ implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(3))
 
   def insertData(table: String) = {
     val cluster = Cluster.builder().addContactPoint("172.31.58.106").build()
@@ -35,8 +35,8 @@ object CassandraTestLocal {
     println(start)
 
     var x = 0
-    val futures = lines.flatMap { row =>
-      (2007 to 2012).map { year =>
+    val futures = lines.map { row =>
+      val inner = (2007 to 2011).map { year =>
         Future {
           var arr: Array[String] = row.split(",").array
           arr(0) = "'" + year + "'"
@@ -62,9 +62,9 @@ object CassandraTestLocal {
           }
         }
       }
+      Await.ready(Future.sequence(inner), Duration.Inf)
     }
 
-    Await.ready(Future.sequence(futures), Duration.Inf)
 
     val end = java.time.LocalDateTime.now()
     println("started at: " + start + " ended at: " + end)
