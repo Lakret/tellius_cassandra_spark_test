@@ -35,8 +35,8 @@ object CassandraTestLocal {
     println(start)
 
     var x = 0
-    val futures = lines.map { row =>
-      val inner = (2007 to 2011).map { year =>
+    val futures = lines.flatMap { row =>
+      (2007 to 2011).map { year =>
         Future {
           var arr: Array[String] = row.split(",").array
           arr(0) = "'" + year + "'"
@@ -62,7 +62,10 @@ object CassandraTestLocal {
           }
         }
       }
-      Await.ready(Future.sequence(inner), Duration.Inf)
+    }.grouped(50000)
+
+    for (futureGroup <- futures) {
+      Await.ready(Future.sequence(futureGroup), Duration.Inf)
     }
 
 
