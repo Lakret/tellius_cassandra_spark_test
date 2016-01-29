@@ -31,36 +31,43 @@ object CassandraTestLocal {
     val lines = Source.fromFile("./data/2007.csv").getLines()
 
     println("lines read")
-    println(java.time.LocalDateTime.now())
+    val start = java.time.LocalDateTime.now()
+    println(start)
 
     var x = 0
-    lines.foreach { row =>
-     Future {
-      var arr: Array[String] = row.split(",").array
-      for (i <- 0 to 13) {
-       arr(i) = "'" +  arr(i) + "'"
-      }
-      for (i <- 15 to (arr.length - 1)) {
-       arr(i) = "'" +  arr(i) + "'"
-      }
+    val futures = lines.flatMap { row =>
+      (2007 to 2012).map { year =>
+        Future {
+          var arr: Array[String] = row.split(",").array
+          arr(0) = "'" + year + "'"
+          for (i <- 1 to 13) {
+            arr(i) = "'" +  arr(i) + "'"
+          }
+          for (i <- 15 to (arr.length - 1)) {
+            arr(i) = "'" +  arr(i) + "'"
+          }
 
-      val prepared = arr.mkString(",")
-      x = x + 1
-      if (x % 10000 == 0) {
-        println(x, prepared)
-      }
+          val prepared = arr.mkString(",")
+          x = x + 1
+          if (x % 10000 == 0) {
+            println(x, prepared)
+          }
 
-//        println("executing")
-        val stmnt = "INSERT INTO airlines (year,month,day ,dayofweek , deptime , crsdeptime , arrtime , crsarrtime , uniquecarrier , flightnum , tailnum , actualelapsedtime , crselapsedtime , airtime , arrdelay, depdelay, origin , dest , distance , taxiin , taxiout , cancelled , cancellationcode , diverted , carrierdelay , weatherdelay , nasdelay , securitydelay , lateaircraftdelay ) VALUES (" + prepared + ");"
-//        println(stmnt)
-        val res =  session.executeAsync(stmnt)
-      if (x % 10000 == 0) {
-        println(res.get(1, TimeUnit.SECONDS))
-      }
+          //        println("executing")
+          val stmnt = "INSERT INTO airlines (year,month,day ,dayofweek , deptime , crsdeptime , arrtime , crsarrtime , uniquecarrier , flightnum , tailnum , actualelapsedtime , crselapsedtime , airtime , arrdelay, depdelay, origin , dest , distance , taxiin , taxiout , cancelled , cancellationcode , diverted , carrierdelay , weatherdelay , nasdelay , securitydelay , lateaircraftdelay ) VALUES (" + prepared + ");"
+          //        println(stmnt)
+          val res =  session.executeAsync(stmnt)
+          if (x % 10000 == 0) {
+            println(res.get(1, TimeUnit.SECONDS))
+          }
+        }
       }
     }
 
-    println(java.time.LocalDateTime.now())
+    Await.ready(Future.sequence(futures), Duration.Inf)
+
+    val end = java.time.LocalDateTime.now()
+    println("started at: " + start + " ended at: " + end)
   }
 
   def queryData(table: String) = {
