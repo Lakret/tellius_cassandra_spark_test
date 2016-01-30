@@ -12,6 +12,7 @@ import com.datastax.driver.core._
 import org.apache.spark.rdd.RDD
 
 import scala.collection.immutable._
+import scala.collection.parallel.ForkJoinTaskSupport
 import scala.collection.parallel.mutable.ParArray
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -197,28 +198,30 @@ object Application extends App  {
   println(java.time.LocalDateTime.now())
   arrdelayByCarrier.take(5).foreach{ case (carrier, delay) => println(carrier + " - " + delay) }
 
-  println("selecting avg(arrdelay) for each carrier in 2007 WITH SPLITTING")
-  val carriers = Array("WN", "UA", "OO", "NW", "MQ", "HA", "AA", "US", "AQ", "XE", "OH", "DL", "B6", "9E", "AS", "CO", "F9", "YV", "EV", "FL").par
-  println(java.time.LocalDateTime.now())
-  //  TODO: try where with different partitioning
-  val res = carriers.map(carrier => {
-    val sumForC = months.map { month =>
-      airlines.select("year", "uniquecarrier", "arrdelay")
-        .where("year = ? and uniquecarrier = ? and month = ?", "2007", "WN", month)
-        .map(_.getInt("arrdelay")).sum
-    }.sum
-    (carrier, sumForC)
-  })
-  println("res: ")
-  println(java.time.LocalDateTime.now())
-  println(res.take(5))
+//  println("selecting avg(arrdelay) for each carrier in 2007 WITH SPLITTING")
+//  val carriers = Array("WN", "UA", "OO", "NW", "MQ", "HA", "AA", "US", "AQ", "XE", "OH", "DL", "B6", "9E", "AS", "CO", "F9", "YV", "EV", "FL").par
+//  println(java.time.LocalDateTime.now())
+//  //  TODO: try where with different partitioning
+//  val res = carriers.map(carrier => {
+//    val sumForC = months.map { month =>
+//      airlines.select("year", "uniquecarrier", "arrdelay")
+//        .where("year = ? and uniquecarrier = ? and month = ?", "2007", "WN", month)
+//        .map(_.getInt("arrdelay")).sum
+//    }.sum
+//    (carrier, sumForC)
+//  })
+//  println("res: ")
+//  println(java.time.LocalDateTime.now())
+//  println(res.take(5))
 
 
   var carriersWithMonths =
     Array("WN", "UA", "OO", "NW", "MQ", "HA", "AA", "US", "AQ", "XE", "OH", "DL", "B6", "9E", "AS", "CO", "F9", "YV", "EV", "FL")
       .flatMap(carrier => (1 to 12).map(month => (carrier, month))).par
 
-  println("selecting avg(arrdelay) for each carrier in 2007 WITH SPLITTING BY PAR")
+  carriersWithMonths.tasksupport = new ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(12))
+
+  println("selecting avg(arrdelay) for each carrier in 2007 WITH SPLITTING BY PAR LEVEL 12")
   println(java.time.LocalDateTime.now())
   //  TODO: try where with different partitioning
   val res2 = carriersWithMonths.map { case (carrier, month) => {

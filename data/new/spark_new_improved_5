@@ -1,0 +1,83 @@
+running...
+(partition key: ,(year,uniquecarrier,month))
+cassandra count:
+2016-01-30T03:59:48.521
+36376295
+res: 
+2016-01-30T04:00:42.404
+
+53.88 s
+
+
+spark count:
+2016-01-30T04:00:42.404
+36376295
+res: 
+2016-01-30T04:02:23.789
+
+1 min 41.38 s
+
+
+selecting sum(arrdelay) for WN in January of 2007
+2016-01-30T04:02:23.789
+169538.0
+res: 
+2016-01-30T04:02:25.305
+
+1.51 s
+
+
+selecting sum(arrdelay) for WN in 2007
+2016-01-30T04:02:25.305
+6331983.0
+res: 
+2016-01-30T04:03:18.197
+
+52.89 s
+
+
+selecting sum(arrdelay) for WN in 2007 WITH WHERE CLAUSE
+2016-01-30T04:03:18.198
+6331983.0
+res: 
+2016-01-30T04:03:24.593
+
+6.39 s
+
+
+selecting avg(arrdelay) for each carrier in 2007
+2016-01-30T04:03:24.593
+2016-01-30T04:04:17.214
+B6 - 286145
+MQ - 979448
+F9 - 63373
+AA - 712125
+FL - 117251
+
+52.62 s
+
+
+selecting avg(arrdelay) for each carrier in 2007 WITH SPLITTING
+2016-01-30T04:04:17.215
+res: 
+2016-01-30T04:05:37.473
+ParArray((WN,6331983.0), (UA,6331983.0), (OO,6331983.0), (NW,6331983.0), (MQ,6331983.0))
+
+1 min 20.26 s
+
+selecting avg(arrdelay) for each carrier in 2007 WITH SPLITTING BY PAR
+2016-01-30T04:05:37.474
+res: 
+2016-01-30T04:06:58.202
+ParArray((WN,169538.0), (WN,515449.0), (WN,376164.0), (WN,323657.0), (WN,365111.0))
+
+1 min 20.73 s
+
+
+taking top 100 arrdelays for WN in 2007
+2016-01-30T04:06:58.202
+[Lscala.Tuple2;@6a1d526c
+res: 
+2016-01-30T04:08:51.118
+
+1 min 52.92 s
