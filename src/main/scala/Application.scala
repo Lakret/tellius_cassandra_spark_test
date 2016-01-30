@@ -139,11 +139,13 @@ object Application extends App  {
   println("cassandra count:")
   println(java.time.LocalDateTime.now())
   println(airlines.cassandraCount())
+  println("res: ")
   println(java.time.LocalDateTime.now())
 
   println("spark count:")
   println(java.time.LocalDateTime.now())
   println(airlines.count())
+  println("res: ")
   println(java.time.LocalDateTime.now())
 
   println("selecting sum(arrdelay) for WN in January of 2007")
@@ -151,6 +153,7 @@ object Application extends App  {
   println(airlines
     .select("year", "month", "day", "uniquecarrier", "arrdelay")
     .where("year = ? and uniquecarrier = ? and month = ?", "2007", "WN", "1").map(_.getInt("arrdelay")).sum)
+  println("res: ")
   println(java.time.LocalDateTime.now())
 
   println("selecting sum(arrdelay) for WN in 2007")
@@ -162,6 +165,7 @@ object Application extends App  {
     .select("year", "uniquecarrier", "arrdelay")
     .filter(row => row.getInt("year") == 2007 && row.getString("uniquecarrier") == "WN")
     .map(_.getInt("arrdelay")).sum)
+  println("res: ")
   println(java.time.LocalDateTime.now())
 
   println("selecting sum(arrdelay) for WN in 2007 WITH WHERE CLAUSE")
@@ -177,6 +181,7 @@ object Application extends App  {
       .map(_.getInt("arrdelay")).sum
   }.sum
   println(sumres)
+  println("res: ")
   println(java.time.LocalDateTime.now())
 
 
@@ -190,7 +195,7 @@ object Application extends App  {
     .map {case (carrier, rows) => (carrier, rows.map(_.getInt("arrdelay")).sum)}
     .collect()
   println(java.time.LocalDateTime.now())
-  arrdelayByCarrier.foreach{ case (carrier, delay) => println(carrier + " - " + delay) }
+  arrdelayByCarrier.take(5).foreach{ case (carrier, delay) => println(carrier + " - " + delay) }
 
   println("selecting avg(arrdelay) for each carrier in 2007 WITH SPLITTING")
   val carriers = Array("WN", "UA", "OO", "NW", "MQ", "HA", "AA", "US", "AQ", "XE", "OH", "DL", "B6", "9E", "AS", "CO", "F9", "YV", "EV", "FL").par
@@ -204,8 +209,29 @@ object Application extends App  {
     }.sum
     (carrier, sumForC)
   })
+  println("res: ")
   println(java.time.LocalDateTime.now())
-  println(res)
+  println(res.take(5))
+
+
+  var carriersWithMonths =
+    Array("WN", "UA", "OO", "NW", "MQ", "HA", "AA", "US", "AQ", "XE", "OH", "DL", "B6", "9E", "AS", "CO", "F9", "YV", "EV", "FL")
+      .flatMap(carrier => (1 to 12).map(month => (carrier, month))).par
+
+  println("selecting avg(arrdelay) for each carrier in 2007 WITH SPLITTING BY PAR")
+  println(java.time.LocalDateTime.now())
+  //  TODO: try where with different partitioning
+  val res2 = carriersWithMonths.map { case (carrier, month) => {
+      val sumForC =
+        airlines.select("year", "uniquecarrier", "arrdelay")
+          .where("year = ? and uniquecarrier = ? and month = ?", "2007", "WN", month)
+          .map(_.getInt("arrdelay")).sum
+      (carrier, sumForC)
+    }
+  }
+  println("res: ")
+  println(java.time.LocalDateTime.now())
+  println(res2.take(5))
 
   println("taking top 100 arrdelays for WN in 2007")
   println(java.time.LocalDateTime.now())
@@ -215,6 +241,7 @@ object Application extends App  {
     .map(row => (row.getFloat("arrdelay"), (row.getInt("year"), row.getString("uniquecarrier"))))
     .sortByKey(false)
     .take(100))
+  println("res: ")
   println(java.time.LocalDateTime.now())
 
   //  println("selecting top 100 delays for WN")
