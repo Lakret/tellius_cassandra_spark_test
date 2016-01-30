@@ -4,10 +4,12 @@ import java.io.{FileReader, BufferedReader, File}
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.Executors
 
+import com.datastax.spark.connector.rdd.CassandraTableScanRDD
 import org.apache.spark._
 import com.datastax.spark.connector._
 
 import com.datastax.driver.core._
+import org.apache.spark.rdd.RDD
 
 import scala.collection.immutable._
 import scala.concurrent.duration.Duration
@@ -120,11 +122,16 @@ object CassandraTestLocal {
 object Application extends App  {
 // bin/spark-shell --packages datastax:spark-cassandra-connector:1.5.0-RC1-s_2.10 --master spark://ip-172-31-57-38:7077 --driver-java-options spark.driver.allowMultipleContexts=true
  def sparkTest() = {
-  val conf = new SparkConf(true).set("spark.cassandra.connection.host", "172.31.58.106").set("spark.driver.allowMultipleContexts", "true")
+  val conf = new SparkConf(true).set("spark.cassandra.connection.host", "172.31.58.106")
+    .set("spark.driver.allowMultipleContexts", "true")
+    .set("spark.cassandra.input.fetch.size_in_rows", "5000")
+    .set("spark.cassandra.connection.keep_alive_ms", "10000")
   val sc = new SparkContext("spark://ip-172-31-58-106:7077", "text", conf)
-  val airlines = sc.cassandraTable("testairlines", "airlines")
+  val airlines: CassandraTableScanRDD[CassandraRow] = sc.cassandraTable("testairlines", "airlines")
 
   println("running...")
+
+  println("partition key: ", "(year,uniquecarrier,month)")
 
   println("cassandra count:")
   println(airlines.cassandraCount())
@@ -133,7 +140,9 @@ object Application extends App  {
   println(airlines.count())
 
   println("selecting sum(arrdelay) for WN in January of 2007")
-  println(airlines.select("year", "month", "day", "uniquecarrier", "arrdelay").where("year = ? and month = ? and uniquecarrier = ?", "2007", "1", "WN").map(_.getInt("arrdelay")).sum)
+  println(airlines
+    .select("year", "month", "day", "uniquecarrier", "arrdelay")
+    .where("year = ? and uniquecarrier = ? and month = ?", "2007", "WN", "1").map(_.getInt("arrdelay")).sum)
 
   println("selecting sum(arrdelay) for WN in 2007")
   //  fails because not all keys of partition key are provided
@@ -142,6 +151,15 @@ object Application extends App  {
   println(airlines
     .select("year", "uniquecarrier", "arrdelay")
     .filter(row => row.getInt("year") == 2007 && row.getString("uniquecarrier") == "WN")
+    .map(_.getInt("arrdelay")).sum)
+
+  println("selecting sum(arrdelay) for WN in 2007 WITH WHERE CLAUSE")
+  //  fails because not all keys of partition key are provided
+  //  TODO: retest with different partition key
+  //  println(airlines.select("year", "uniquecarrier", "arrdelay").where("year = ? and uniquecarrier = ?", "2007", "WN").map(_.getInt("arrdelay")).sum)
+  println(airlines
+    .select("year", "uniquecarrier", "arrdelay")
+    .where("year = ? and uniquecarrier = ?", "2007", "WN")
     .map(_.getInt("arrdelay")).sum)
 
   println("selecting avg(arrdelay) for each carrier in 2007")
@@ -154,10 +172,21 @@ object Application extends App  {
     .collect()
   arrdelayByCarrier.foreach{ case (carrier, delay) => println(carrier + " - " + delay) }
 
+  println("selecting avg(arrdelay) for each carrier in 2007 WITH SPLITTING")
+  val carriers = List("WN", "UA", "OO", "NW", "MQ", "HA", "AA", "US", "AQ", "XE", "OH", "DL", "B6", "9E", "AS", "CO", "F9", "YV", "EV", "FL")
+  //  TODO: try where with different partitioning
+  val res= sc.parallelize(carriers).map(carrier => {
+    val sumForC = airlines.select("year", "uniquecarrier", "arrdelay")
+      .where("year = ? and uniquecarrier = ?", "2007", "WN")
+      .map(_.getInt("arrdelay")).sum
+    (carrier, sumForC)
+  }).collect()
+  println(res)
+
   println("taking top 100 arrdelays for WN in 2007")
   println(airlines
     .select("year", "uniquecarrier", "arrdelay")
-    .filter(row => row.getInt("year") == 2007 && row.getString("uniquecarrier") == "WN")
+    .where("year = ? and uniquecarrier = ?", "2007", "WN")
     .map(row => (row.getFloat("arrdelay"), (row.getInt("year"), row.getString("uniquecarrier"))))
     .sortByKey(false)
     .take(100))
