@@ -127,6 +127,8 @@ object Application extends App  {
     .set("spark.driver.allowMultipleContexts", "true")
     .set("spark.cassandra.input.fetch.size_in_rows", "5000")
     .set("spark.cassandra.connection.keep_alive_ms", "10000")
+    .set("spark.cassandra.input.metrics", "false")
+    .set("spark.cassandra.output.metrics", "false")
   val sc = new SparkContext("spark://ip-172-31-58-106:7077", "text", conf)
   val airlines: CassandraTableScanRDD[CassandraRow] = sc.cassandraTable("testairlines", "airlines")
 
@@ -135,17 +137,24 @@ object Application extends App  {
   println("partition key: ", "(year,uniquecarrier,month)")
 
   println("cassandra count:")
+  println(java.time.LocalDateTime.now())
   println(airlines.cassandraCount())
+  println(java.time.LocalDateTime.now())
 
   println("spark count:")
+  println(java.time.LocalDateTime.now())
   println(airlines.count())
+  println(java.time.LocalDateTime.now())
 
   println("selecting sum(arrdelay) for WN in January of 2007")
+  println(java.time.LocalDateTime.now())
   println(airlines
     .select("year", "month", "day", "uniquecarrier", "arrdelay")
     .where("year = ? and uniquecarrier = ? and month = ?", "2007", "WN", "1").map(_.getInt("arrdelay")).sum)
+  println(java.time.LocalDateTime.now())
 
   println("selecting sum(arrdelay) for WN in 2007")
+  println(java.time.LocalDateTime.now())
   //  fails because not all keys of partition key are provided
   //  TODO: retest with different partition key
   //  println(airlines.select("year", "uniquecarrier", "arrdelay").where("year = ? and uniquecarrier = ?", "2007", "WN").map(_.getInt("arrdelay")).sum)
@@ -153,12 +162,14 @@ object Application extends App  {
     .select("year", "uniquecarrier", "arrdelay")
     .filter(row => row.getInt("year") == 2007 && row.getString("uniquecarrier") == "WN")
     .map(_.getInt("arrdelay")).sum)
+  println(java.time.LocalDateTime.now())
 
   println("selecting sum(arrdelay) for WN in 2007 WITH WHERE CLAUSE")
   //  fails because not all keys of partition key are provided
   //  TODO: retest with different partition key
   //  println(airlines.select("year", "uniquecarrier", "arrdelay").where("year = ? and uniquecarrier = ?", "2007", "WN").map(_.getInt("arrdelay")).sum)
   val months = (1 to 12).map(_.toString()).toArray.par
+  println(java.time.LocalDateTime.now())
   val sumres = months.map { month =>
     airlines
       .select("year", "uniquecarrier", "arrdelay")
@@ -166,19 +177,24 @@ object Application extends App  {
       .map(_.getInt("arrdelay")).sum
   }.sum
   println(sumres)
+  println(java.time.LocalDateTime.now())
+
 
   println("selecting avg(arrdelay) for each carrier in 2007")
   //  TODO: try where with different partitioning
+  println(java.time.LocalDateTime.now())
   val arrdelayByCarrier = airlines
     .select("year", "uniquecarrier", "arrdelay")
     .filter(row => row.getInt("year") == 2007)
     .spanBy(row => row.getString("uniquecarrier"))
     .map {case (carrier, rows) => (carrier, rows.map(_.getInt("arrdelay")).sum)}
     .collect()
+  println(java.time.LocalDateTime.now())
   arrdelayByCarrier.foreach{ case (carrier, delay) => println(carrier + " - " + delay) }
 
   println("selecting avg(arrdelay) for each carrier in 2007 WITH SPLITTING")
   val carriers = Array("WN", "UA", "OO", "NW", "MQ", "HA", "AA", "US", "AQ", "XE", "OH", "DL", "B6", "9E", "AS", "CO", "F9", "YV", "EV", "FL").par
+  println(java.time.LocalDateTime.now())
   //  TODO: try where with different partitioning
   val res = carriers.map(carrier => {
     val sumForC = months.map { month =>
@@ -188,15 +204,18 @@ object Application extends App  {
     }.sum
     (carrier, sumForC)
   })
+  println(java.time.LocalDateTime.now())
   println(res)
 
   println("taking top 100 arrdelays for WN in 2007")
+  println(java.time.LocalDateTime.now())
   println(airlines
     .select("year", "uniquecarrier", "arrdelay")
     .filter(row => row.getInt("year") == 2007 && row.getString("uniquecarrier") == "WN")
     .map(row => (row.getFloat("arrdelay"), (row.getInt("year"), row.getString("uniquecarrier"))))
     .sortByKey(false)
     .take(100))
+  println(java.time.LocalDateTime.now())
 
   //  println("selecting top 100 delays for WN")
   //  val top100ByCarrier = airlines
