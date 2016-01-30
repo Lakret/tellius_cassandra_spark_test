@@ -12,6 +12,7 @@ import com.datastax.driver.core._
 import org.apache.spark.rdd.RDD
 
 import scala.collection.immutable._
+import scala.collection.parallel.mutable.ParArray
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.forkjoin._
@@ -157,13 +158,13 @@ object Application extends App  {
   //  fails because not all keys of partition key are provided
   //  TODO: retest with different partition key
   //  println(airlines.select("year", "uniquecarrier", "arrdelay").where("year = ? and uniquecarrier = ?", "2007", "WN").map(_.getInt("arrdelay")).sum)
-  val months = sc.parallelize((1 to 12).map(_.toString()))
+  val months = (1 to 12).map(_.toString()).toArray.par
   val sumres = months.map { month =>
     airlines
       .select("year", "uniquecarrier", "arrdelay")
       .where("year = ? and uniquecarrier = ? and month = ?", "2007", "WN", month)
       .map(_.getInt("arrdelay")).sum
-  }.sum()
+  }.sum
   println(sumres)
 
   println("selecting avg(arrdelay) for each carrier in 2007")
@@ -177,16 +178,16 @@ object Application extends App  {
   arrdelayByCarrier.foreach{ case (carrier, delay) => println(carrier + " - " + delay) }
 
   println("selecting avg(arrdelay) for each carrier in 2007 WITH SPLITTING")
-  val carriers = List("WN", "UA", "OO", "NW", "MQ", "HA", "AA", "US", "AQ", "XE", "OH", "DL", "B6", "9E", "AS", "CO", "F9", "YV", "EV", "FL")
+  val carriers = Array("WN", "UA", "OO", "NW", "MQ", "HA", "AA", "US", "AQ", "XE", "OH", "DL", "B6", "9E", "AS", "CO", "F9", "YV", "EV", "FL").par
   //  TODO: try where with different partitioning
-  val res= sc.parallelize(carriers).map(carrier => {
+  val res = carriers.map(carrier => {
     val sumForC = months.map { month =>
       airlines.select("year", "uniquecarrier", "arrdelay")
         .where("year = ? and uniquecarrier = ? and month = ?", "2007", "WN", month)
         .map(_.getInt("arrdelay")).sum
-    }.sum()
+    }.sum
     (carrier, sumForC)
-  }).collect()
+  })
   println(res)
 
   println("taking top 100 arrdelays for WN in 2007")
