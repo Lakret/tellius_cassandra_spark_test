@@ -157,10 +157,14 @@ object Application extends App  {
   //  fails because not all keys of partition key are provided
   //  TODO: retest with different partition key
   //  println(airlines.select("year", "uniquecarrier", "arrdelay").where("year = ? and uniquecarrier = ?", "2007", "WN").map(_.getInt("arrdelay")).sum)
-  println(airlines
-    .select("year", "uniquecarrier", "arrdelay")
-    .where("year = ? and uniquecarrier = ?", "2007", "WN")
-    .map(_.getInt("arrdelay")).sum)
+  val months = sc.parallelize((1 to 12).map(_.toString()))
+  val sumres = months.map { month =>
+    airlines
+      .select("year", "uniquecarrier", "arrdelay")
+      .where("year = ? and uniquecarrier = ? and month = ?", "2007", "WN", month)
+      .map(_.getInt("arrdelay")).sum
+  }.sum()
+  println(sumres)
 
   println("selecting avg(arrdelay) for each carrier in 2007")
   //  TODO: try where with different partitioning
@@ -176,9 +180,11 @@ object Application extends App  {
   val carriers = List("WN", "UA", "OO", "NW", "MQ", "HA", "AA", "US", "AQ", "XE", "OH", "DL", "B6", "9E", "AS", "CO", "F9", "YV", "EV", "FL")
   //  TODO: try where with different partitioning
   val res= sc.parallelize(carriers).map(carrier => {
-    val sumForC = airlines.select("year", "uniquecarrier", "arrdelay")
-      .where("year = ? and uniquecarrier = ?", "2007", "WN")
-      .map(_.getInt("arrdelay")).sum
+    val sumForC = months.map { month =>
+      airlines.select("year", "uniquecarrier", "arrdelay")
+        .where("year = ? and uniquecarrier = ? and month = ?", "2007", "WN", month)
+        .map(_.getInt("arrdelay")).sum
+    }.sum()
     (carrier, sumForC)
   }).collect()
   println(res)
@@ -186,7 +192,7 @@ object Application extends App  {
   println("taking top 100 arrdelays for WN in 2007")
   println(airlines
     .select("year", "uniquecarrier", "arrdelay")
-    .where("year = ? and uniquecarrier = ?", "2007", "WN")
+    .filter(row => row.getInt("year") == 2007 && row.getString("uniquecarrier") == "WN")
     .map(row => (row.getFloat("arrdelay"), (row.getInt("year"), row.getString("uniquecarrier"))))
     .sortByKey(false)
     .take(100))
